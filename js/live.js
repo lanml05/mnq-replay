@@ -6,7 +6,7 @@
 (function(){
 'use strict';
 var G=window,LG=G.__LG;if(!LG)return;
-var GAME_MS=20*60*1000,BAL=50000,RISK$=500,H0=9*60,DAY_END=15*60+58,STEP=GAME_MS/(DAY_END-H0),BEAT=4000,FRESH=15000;
+var PREP=2*60*1000,GAME_MS=20*60*1000,BAL=50000,RISK$=500,H0=9*60,DAY_END=15*60+58,STEP=GAME_MS/(DAY_END-H0),BEAT=4000,FRESH=15000;
 var api=LG.api,me=LG.me,esc=LG.esc,fmtR=LG.fmtR;
 var DN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
@@ -34,7 +34,7 @@ function openDaily(){
   LG.needName().then(function(n){if(!n)return;
   LG.useMNQ().then(function(){var key=todayKey();if(!key){toast('Data is still loading');return}
     var md=win('<div class="dhead"><b>Daily challenge</b><span class="lv-day">'+dayLabel(key)+'</span><span class="hsp"></span><button class="hb" data-lx="1">'+ico('x')+'</button></div>'+
-      '<p class="lg-meta">Everyone plays this day at the same time: 9:00–16:00 NY runs in <b>20 minutes</b>. No pause, no rewind. Risk is 1 % per trade, stop loss required. Most R wins.</p>'+
+      '<p class="lg-meta">Everyone plays this day at the same time: 9:00–16:00 NY runs in <b>20 minutes</b>. First 2 minutes to look at the chart and mark your levels. No pause, no rewind. Risk is 1 % per trade, stop loss required. Most R wins.</p>'+
       '<div class="lg-act"><button class="hbig" data-lv="new">'+ico('plus')+'Create a room</button><button class="hsec" data-lv="join">Join with code</button><button class="hsec" data-lv="solo">'+ico('play')+'Play alone</button></div>'+
       '<div class="lg-l">Rooms waiting for players</div><div class="lv-rooms"><p class="dim">Loading …</p></div>');
     function rooms(){api('lobbies?start_at=is.null&created_at=gte.'+encodeURIComponent(new Date(Date.now()-3*3600e3).toISOString())+'&order=created_at.desc&limit=8').then(function(L){
@@ -59,9 +59,9 @@ function createRoom(key){var code=LG.newCode();
 function joinRoom(code){LG.needName().then(function(n){if(!n)return;
   getRoom(code).then(function(R){if(!R){toast('No room with code '+code);return}
     var st=R.l.start_at?Date.parse(R.l.start_at):0,mine=R.p.filter(function(p){return p.player===me()})[0];
-    if(mine&&mine.done||st&&sNow()>st+GAME_MS){closeW();G.openMatch(code);return}
+    if(mine&&mine.done||st&&sNow()>st+PREP+GAME_MS){closeW();G.openMatch(code);return}
     var md=win('<div class="dhead"><b>'+esc(R.l.host)+'’s room</b><span class="lg-code" title="Room code">'+code+'</span><span class="hsp"></span><button class="hb" data-lx="1">'+ico('x')+'</button></div>'+
-      '<div class="lg-meta">'+dayLabel(R.l.day)+' · 9:00–16:00 NY in 20 minutes · risk 1 % per trade · most R wins</div>'+
+      '<div class="lg-meta">'+dayLabel(R.l.day)+' · 2 min to mark levels, then 9:00–16:00 NY in 20 minutes · risk 1 % per trade · most R wins</div>'+
       '<div class="lv-state"></div><div class="lg-act lv-act"></div><div class="lg-l">Players</div><div class="lv-pl"></div>');
     W.code=code;lsSet('mnqr-lv-room',code);
     md.addEventListener('click',function(e){var b=e.target.closest('[data-lr]');if(!b)return;var a=b.dataset.lr;
@@ -78,7 +78,7 @@ function joinRoom(code){LG.needName().then(function(n){if(!n)return;
         if(!st){S1.innerHTML=host?'<p>Send the link to your friends. When everyone is here, press <b>Start for everyone</b>.</p>':'<p>Waiting for <b>'+esc(l.host)+'</b> to start …</p>';
           A.innerHTML=(host?'<button class="hbig" data-lr="start">'+ico('play')+'Start for everyone</button>':'')+'<button class="hsec" data-lr="copy">'+ico('send')+'Copy invite link</button><button class="hsec" data-lr="leave">Leave room</button>'}
         else if(left>0){S1.innerHTML='<div class="lv-cd">Starting in <b>'+Math.ceil(left/1000)+'</b></div>';A.innerHTML=''}
-        else if(-left<GAME_MS){closeW();begin(l)}
+        else if(-left<PREP+GAME_MS){closeW();begin(l)}
         else{closeW();G.openMatch(code)}},function(){})}
     tick();W.iv=setInterval(tick,1000)})})}
 
@@ -95,9 +95,11 @@ function begin(l){if(L||LG.busy())return;var a=l.day.split('-'),st=wallToUtc(+a[
     if(G.hideHome)G.hideHome();
     if(!RK0&&G.__RK)RK0={u:G.__RK.u,v:G.__RK.v};if(G.setRisk)G.setRisk('pct',1);LG.lockTicket(true);
     document.body.classList.add('matchon','liveon');if(G.setOT)G.setOT('market');
-    L={l:l,code:code,start:Date.parse(l.start_at),n:0,base:lsGet('mnqr-lv-'+code,{pnl:0,trades:0,wins:0}),nt:0,lastBeat:0,board:[],iv:0};
+    L={l:l,code:code,start:Date.parse(l.start_at)+PREP,n:0,base:lsGet('mnqr-lv-'+code,{pnl:0,trades:0,wins:0}),nt:0,lastBeat:0,board:[],iv:0};
     L.iv=setInterval(step,200);step();ui()})}
 function step(){if(!L||!S)return;var el=sNow()-L.start;
+  if(el<0){if(Date.now()-L.lastBeat>=BEAT){L.lastBeat=Date.now();send(false)}draw(el);return}// prep: the chart stands still, mark your levels
+  if(!L.go){L.go=1;if(typeof snd==='function')snd('open');toast('The chart is running · good luck')}
   if(el>=GAME_MS){end('time');return}
   var target=Math.min(DAY_END-H0,Math.floor(el/STEP)+1),k=0;
   while(L.n<target&&k<600){if(LG.nyMin(nowT())>=DAY_END)break;reveal(1);L.n++;k++}
@@ -107,6 +109,10 @@ function step(){if(!L||!S)return;var el=sNow()-L.start;
 function send(done){var t=stats(),code=L.code;
   return beat(code,{r:t.r,pnl:t.pnl,trades:t.trades,open:!!S.positions.length,done:!!done}).then(function(){return getRoom(code)}).then(function(R){if(R&&L&&L.code===code){L.board=R.p;drawBoard()}return R},function(){})}
 function draw(el){var b=$('mbar');if(!b){b=document.createElement('div');b.id='mbar';document.body.appendChild(b)}var t=stats(),left=GAME_MS-el;
+  if(el<0){b.innerHTML='<div class="mb-l"><span class="mb-code">Live · '+esc(L.l.host)+'’s room</span><span class="mb-day">Preparation</span></div>'+
+    '<div class="mb-t prep"><b>'+mmss(-el)+'</b><i style="width:'+Math.max(0,-el/PREP*100)+'%"></i></div>'+
+    '<span class="mb-s">Look at the chart and mark your levels · the chart starts for everyone when the time runs out · trading opens then</span>'+
+    '<button class="mb-b ghost" data-lb="leave">Leave</button>';return}
   b.innerHTML='<div class="mb-l"><span class="mb-code">Live · '+esc(L.l.host)+'’s room</span><span class="mb-day">You <b class="'+cls(t.r)+'">'+fmtR(t.r)+'</b> · '+t.trades+' trades</span></div>'+
     '<div class="mb-t'+(left<=60000?' warn':'')+'"><b>'+mmss(left)+'</b><i style="width:'+Math.max(0,left/GAME_MS*100)+'%"></i></div>'+
     '<span class="mb-s">Risk 1 % per trade · stop loss required · the day runs for everyone at the same speed</span>'+
@@ -140,7 +146,7 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
 G.addEventListener('keydown',function(e){if(!L)return;var k=e.key;if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
   if(k===' '||k==='ArrowRight'||k==='ArrowLeft'||k==='x'||k==='X'){e.preventDefault();e.stopImmediatePropagation()}},true);
 ['play','stepCandle','jumpTo','rewindTo'].forEach(function(f){var o=G[f];if(typeof o!=='function')return;G[f]=function(){if(L)return;return o.apply(this,arguments)}});
-var _ct=G.canTrade;G.canTrade=function(q){if(L&&S&&S.match===L.code&&!(num($('oSL').value)>0)){toast('Set a stop loss first · it decides your R');return false}return _ct.apply(this,arguments)};
+var _ct=G.canTrade;G.canTrade=function(q){if(L&&sNow()<L.start){toast('Preparation · trading opens when the chart starts');return false}if(L&&S&&S.match===L.code&&!(num($('oSL').value)>0)){toast('Set a stop loss first · it decides your R');return false}return _ct.apply(this,arguments)};
 var _home=G.showHome;G.showHome=function(){if(L){leaveLive();return}return _home.apply(this,arguments)};
 
 /* ---------- entry points ---------- */
@@ -150,6 +156,6 @@ function retry(){Object.keys(localStorage).forEach(function(k){if(k.indexOf('mnq
 if(LG.online)setTimeout(function(){retry();
   var q=/[?&]l=([A-Z2-9]{6})/i.exec(location.search);if(q){joinRoom(q[1].toUpperCase());return}
   // the app was closed during a live game: offer to jump back in while it is still running
-  var c=lsGet('mnqr-lv-room',null);if(c)getRoom(c).then(function(R){var st=R&&R.l.start_at?Date.parse(R.l.start_at):0;if(st&&sNow()<st+GAME_MS)joinRoom(c);else lsSet('mnqr-lv-room',null)},function(){})},1000);
-G.__LV={L:function(){return L},sNow:sNow,openDaily:openDaily,joinRoom:joinRoom,end:end,GAME_MS:GAME_MS,setGame:function(ms){GAME_MS=ms;STEP=GAME_MS/(DAY_END-H0)}};
+  var c=lsGet('mnqr-lv-room',null);if(c)getRoom(c).then(function(R){var st=R&&R.l.start_at?Date.parse(R.l.start_at):0;if(st&&sNow()<st+PREP+GAME_MS)joinRoom(c);else lsSet('mnqr-lv-room',null)},function(){})},1000);
+G.__LV={L:function(){return L},sNow:sNow,openDaily:openDaily,joinRoom:joinRoom,end:end,GAME_MS:GAME_MS,setGame:function(ms,pr){GAME_MS=ms;STEP=GAME_MS/(DAY_END-H0);if(pr!=null)PREP=pr}};
 })();

@@ -1,9 +1,19 @@
 /* ===== MNQ Replay start page ===== */
 .home{background:#050608;overflow:auto}
-#hbg{position:fixed;inset:0;width:100%;height:100%;opacity:.42;pointer-events:none;z-index:0}
+#hbg{position:fixed;inset:0;width:100%;height:100%;opacity:.9;pointer-events:none;z-index:0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
 .hfade{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(1100px 520px at 18% -8%,rgba(126,140,255,.20),transparent 62%),radial-gradient(900px 600px at 100% 10%,rgba(142,92,255,.10),transparent 60%),linear-gradient(180deg,rgba(5,6,8,.25) 0%,rgba(5,6,8,.55) 50%,rgba(5,6,8,.9) 100%)}
-.hwrap2{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 28px 48px;animation:hin .6s cubic-bezier(.2,.8,.2,1) both}
-@keyframes hin{from{opacity:0;transform:translateY(14px)}}
+.hwrap2{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 28px 48px}
+.hwrap2>*{animation:hin .7s cubic-bezier(.16,1,.3,1) both}
+.hwrap2>*:nth-child(2){animation-delay:60ms}
+.hwrap2>*:nth-child(3){animation-delay:120ms}
+.hwrap2>*:nth-child(4){animation-delay:180ms}
+.hwrap2>*:nth-child(5){animation-delay:240ms}
+.hwrap2>*:nth-child(6){animation-delay:300ms}
+.hwrap2>*:nth-child(7){animation-delay:360ms}
+.hwrap2>*:nth-child(8){animation-delay:420ms}
+.hwrap2>*:nth-child(9){animation-delay:480ms}
+@media (prefers-reduced-motion:reduce){.hwrap2>*{animation:none}}
+@keyframes hin{from{opacity:0;transform:translateY(10px);filter:blur(2px)}}
 .hnav{display:flex;align-items:center;gap:10px}
 .hbrand{display:flex;align-items:center;gap:12px}
 .hbrand i{width:40px;height:40px;border-radius:12px;background:var(--accent);color:var(--ink);display:grid;place-items:center;box-shadow:0 10px 28px rgba(126,140,255,.35)}
@@ -97,20 +107,25 @@
 @media (max-width:1100px){.hhero,.hdash{grid-template-columns:1fr}.hstats2{grid-template-columns:repeat(4,1fr)}}
 
 /* intro */
-#intro2{position:fixed;inset:0;z-index:200;background:radial-gradient(900px 500px at 50% 40%,rgba(98,54,245,.22),transparent 65%),#030205;display:grid;place-items:center;transition:opacity .6s,visibility .6s}
+#intro2{position:fixed;inset:0;z-index:200;background:radial-gradient(700px 380px at 50% 46%,rgba(126,140,255,.12),transparent 70%),#050608;display:grid;place-items:center;transition:opacity .6s cubic-bezier(.4,0,.2,1),visibility .6s}
 #intro2.out{opacity:0;visibility:hidden}
-.i2c{position:absolute;left:50%;top:50%;width:min(760px,86vw);height:220px;transform:translate(-50%,-62%);display:flex;align-items:stretch;gap:8px;opacity:.9}
-.ic2{position:relative;flex:1}
-.ic2 .w{position:absolute;left:50%;width:1.5px;transform:translateX(-50%);background:#2FCB8C;opacity:0;animation:i2w .5s ease forwards;animation-delay:calc(var(--i)*45ms)}
-.ic2 .b{position:absolute;left:12%;right:12%;border-radius:2px;background:#2FCB8C;transform:scaleY(0);transform-origin:bottom;animation:i2b .45s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i)*45ms + 80ms);box-shadow:0 0 18px rgba(47,203,140,.35)}
-.ic2.dn .w,.ic2.dn .b{background:#F2576B;box-shadow:0 0 18px rgba(242,87,107,.3)}
-@keyframes i2w{to{opacity:.8}}
-@keyframes i2b{to{transform:scaleY(1)}}
-.i2t{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;transform:translateY(120px);animation:hin .7s .5s cubic-bezier(.2,.8,.2,1) both}
-.i2t i{width:54px;height:54px;border-radius:16px;background:var(--accent);color:var(--ink);display:grid;place-items:center;box-shadow:0 16px 40px rgba(126,140,255,.45)}
-.i2t i svg{width:26px;height:26px}
-.i2t b{font:700 26px var(--f-display);letter-spacing:-.02em}
-.i2t span{color:var(--muted);font-size:14px}
+#intro2.out .i2x{transform:scale(.985) translateY(-6px);transition:transform .6s cubic-bezier(.4,0,.2,1)}
+.i2x{position:relative;width:min(560px,84vw);display:flex;flex-direction:column;align-items:center}
+.i2logo{width:52px;height:52px;border-radius:15px;background:var(--accent);color:var(--ink);display:grid;place-items:center;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 18px 50px rgba(126,140,255,.32);animation:i2in .7s cubic-bezier(.16,1,.3,1) both}
+.i2logo svg{width:24px;height:24px}
+.i2s{width:100%;height:96px;margin:26px 0 22px;overflow:visible}
+.i2p{stroke-dasharray:1;stroke-dashoffset:1;animation:i2draw 1.15s .25s cubic-bezier(.65,0,.35,1) forwards}
+.i2a{opacity:0;animation:i2fade .8s .9s ease forwards}
+.i2w{display:flex;flex-direction:column;align-items:center;gap:6px;animation:i2in .8s .35s cubic-bezier(.16,1,.3,1) both}
+.i2w b{font:700 24px var(--f-display);letter-spacing:-.02em;color:#E8EAEF}
+.i2w span{color:var(--muted);font-size:13.5px}
+.i2bar{width:120px;height:2px;margin-top:26px;border-radius:2px;background:rgba(255,255,255,.06);overflow:hidden}
+.i2bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#7E8CFF,#B9C1FF);transform:scaleX(0);transform-origin:left;animation:i2bar 1.8s .1s cubic-bezier(.65,0,.35,1) forwards}
+@keyframes i2in{from{opacity:0;transform:translateY(8px) scale(.97)}}
+@keyframes i2draw{to{stroke-dashoffset:0}}
+@keyframes i2fade{to{opacity:1}}
+@keyframes i2bar{to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.i2p{stroke-dashoffset:0;animation:none}.i2a{opacity:1;animation:none}.i2logo,.i2w{animation:none}}
 
 .hsym{margin-right:6px}
 .hsym button{padding:5px 10px}

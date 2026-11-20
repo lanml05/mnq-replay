@@ -23,3 +23,4 @@
 .lv-br span:last-child{font-family:"Geist Mono",monospace}
 .lv-br .hsp{display:none}
 @media (max-width:1100px){#lvbd{top:auto;bottom:10px;max-width:calc(100vw - 24px)}}
+.mb-t.prep b{color:#E8C27A}.mb-t.prep i{background:#E4B24C}
