@@ -1,0 +1,29 @@
+/* DOM ladder */
+body.domon{grid-template-columns:52px minmax(0,1fr) 230px 316px}
+body.domon #side{grid-column:4}
+#dom{grid-row:2/4;grid-column:3;display:flex;flex-direction:column;min-height:0;background:var(--panel);border-left:1px solid var(--line)}
+.dmh{display:flex;align-items:center;gap:6px;padding:8px 8px 6px 12px;border-bottom:1px solid var(--line)}
+.dmh b{flex:1;font:700 13px var(--f-display);letter-spacing:.04em}
+.dmh select{width:auto;padding:4px 6px;font-size:12px}
+.dmh .hb{width:28px;height:28px}
+.dmcol,.dmr{display:grid;grid-template-columns:44px 1fr 44px 46px;align-items:center}
+.dmcol{padding:5px 0;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);text-align:center;border-bottom:1px solid var(--line)}
+.dml{flex:1;overflow:hidden;display:flex;flex-direction:column;justify-content:center;font:500 12px var(--f-mono);font-variant-numeric:tabular-nums}
+.dmr{height:22px;border-bottom:1px solid rgba(26,30,38,.55)}
+.dmr>span{height:100%;display:flex;align-items:center;justify-content:center;position:relative}
+.dmb,.dms{cursor:pointer}
+.dmb:hover{background:rgba(47,203,140,.14)}.dms:hover{background:rgba(242,87,107,.14)}
+.dmb i,.dms i{font-style:normal;font-weight:600;font-size:11px;padding:1px 5px;border-radius:4px;cursor:pointer}
+.dmb i{background:rgba(47,203,140,.22);color:#8FE3C0}.dms i{background:rgba(242,87,107,.22);color:#F2A0AA}
+.dmb i:hover,.dms i:hover{text-decoration:line-through}
+.dmp{color:var(--muted);gap:4px;background:rgba(11,13,17,.6)}
+.dmp em{font-style:normal;font-size:9.5px;font-weight:700;padding:0 3px;border-radius:3px;background:var(--accent);color:var(--ink)}
+.dmp em.r{background:var(--down);color:#fff}.dmp em.g{background:var(--up);color:#05130D}
+.dmr.bid .dmp{background:rgba(242,87,107,.18);color:#fff}
+.dmr.ask .dmp{background:rgba(47,203,140,.18);color:#fff}
+.dmr.pe .dmp{box-shadow:inset 0 0 0 1px var(--accent)}
+.dmv{justify-content:flex-start!important;padding:0 4px}
+.dmv b{display:block;height:12px;border-radius:2px;background:rgba(126,140,255,.45)}
+.dmf{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;border-top:1px solid var(--line)}
+.dmf button{border:0;border-radius:8px;padding:8px 4px;font-weight:700;font-size:12px;color:#fff}
+.dmf .btn{color:var(--text);font-weight:600;font-size:11.5px;border:1px solid var(--line2)}

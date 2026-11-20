@@ -1,0 +1,14 @@
+/* multi-chart layouts */
+#sec{position:absolute;inset:0;display:none;pointer-events:none;z-index:2;gap:1px}
+body[data-lay="2"] #chart,body[data-lay="3"] #chart{right:38%}
+body[data-lay="4"] #chart{right:50%;bottom:50%}
+body[data-lay="2"] #sec{display:grid;grid-template-columns:62% 38%;grid-template-rows:1fr}
+body[data-lay="3"] #sec{display:grid;grid-template-columns:62% 38%;grid-template-rows:1fr 1fr}
+body[data-lay="4"] #sec{display:grid;grid-template-columns:50% 50%;grid-template-rows:50% 50%}
+body[data-lay="2"] .scw:nth-child(1){grid-area:1/2}
+body[data-lay="3"] .scw:nth-child(1){grid-area:1/2}body[data-lay="3"] .scw:nth-child(2){grid-area:2/2}
+body[data-lay="4"] .scw:nth-child(1){grid-area:1/2}body[data-lay="4"] .scw:nth-child(2){grid-area:2/1}body[data-lay="4"] .scw:nth-child(3){grid-area:2/2}
+.scw{position:relative;pointer-events:auto;background:#050608;border-left:1px solid var(--line);border-top:1px solid var(--line);min-width:0;min-height:0}
+.scc{position:absolute;inset:0}
+.sch{position:absolute;top:6px;left:8px;z-index:3}
+.sch select{width:auto;padding:3px 6px;font:600 12px var(--f-body);background:rgba(11,13,17,.9)}
