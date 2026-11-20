@@ -36,10 +36,11 @@ function bgBars(){var d=MNQ.data&&MNQ.data['1h'],out=[];if(d){Object.keys(d).for
 var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 function bgStart(){var cv=document.getElementById('hbg');if(!cv)return;BG.c=cv;if(!BG.bars){var e=null;BG.bars=bgBars().map(function(b){e=e==null?b[4]:e+(b[4]-e)*.3;return[b[0],b[1],b[2],b[3],e]})}cancelAnimationFrame(BG.raf);BG.last=performance.now();BG.t0=BG.last;
   if(RM){bgDraw(BG.last);return}
-  (function tick(now){var dt=Math.min(64,now-BG.last);BG.last=now;BG.off+=dt*0.0011;bgDraw(now);BG.raf=requestAnimationFrame(tick)})(BG.last)}
+  // 30 fps is plenty for a slow background line and halves the work
+  (function tick(now){var dt=Math.min(64,now-BG.last);if(dt>=31){BG.last=now;BG.off+=dt*0.0011;bgDraw(now)}BG.raf=requestAnimationFrame(tick)})(BG.last)}
 function bgStop(){cancelAnimationFrame(BG.raf)}
 // a calm market line: real closes, smoothed, with a soft fill, a faint grid and a breathing last-price dot
-function bgDraw(now){var cv=BG.c,dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;if(!W)return;if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
+function bgDraw(now){var cv=BG.c,dpr=Math.min(1,window.devicePixelRatio||1),W=cv.clientWidth,H=cv.clientHeight;if(!W)return;if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
   var g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
   var B=BG.bars,n=Math.min(110,B.length-3),cw=W/(n-8),start=Math.floor(BG.off)%(B.length-n-1),frac=BG.off%1,vis=B.slice(start,start+n+1),lo=Infinity,hi=-Infinity;
   vis.forEach(function(b){lo=Math.min(lo,b[4]);hi=Math.max(hi,b[4])});if(!isFinite(lo)||!isFinite(hi))return;var pad=(hi-lo)*.18||10;lo-=pad;hi+=pad;
@@ -59,7 +60,8 @@ function bgDraw(now){var cv=BG.c,dpr=window.devicePixelRatio||1,W=cv.clientWidth
   if(rv>=1){var lpx=P[P.length-3][0],lpy=P[P.length-3][1],ph=(Math.sin(now/650)+1)/2;
     g.setLineDash([3,5]);g.strokeStyle='rgba(160,172,255,.25)';g.beginPath();g.moveTo(0,Math.round(lpy)+.5);g.lineTo(W,Math.round(lpy)+.5);g.stroke();g.setLineDash([]);
     g.fillStyle='rgba(160,172,255,'+(.10+ph*.12)+')';g.beginPath();g.arc(lpx,lpy,7+ph*5,0,7);g.fill();
-    g.fillStyle='#C9D0FF';g.beginPath();g.arc(lpx,lpy,2.6,0,7);g.fill()}}
+    g.fillStyle='#C9D0FF';g.beginPath();g.arc(lpx,lpy,2.6,0,7);g.fill()}
+  g.globalCompositeOperation='destination-out';var ef=g.createLinearGradient(0,0,W,0);ef.addColorStop(0,'rgba(0,0,0,1)');ef.addColorStop(.18,'rgba(0,0,0,0)');ef.addColorStop(.82,'rgba(0,0,0,0)');ef.addColorStop(1,'rgba(0,0,0,1)');g.fillStyle=ef;g.fillRect(0,0,W,H);g.globalCompositeOperation='source-over'}
 
 /* ---------- count-up numbers ---------- */
 function countUp(root){root.querySelectorAll('[data-cu]').forEach(function(el){var to=+el.dataset.cu,dec=+(el.dataset.dec||0),pre=el.dataset.pre||'',suf=el.dataset.suf||'',t0=performance.now(),D=900;

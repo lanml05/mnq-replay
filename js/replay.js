@@ -64,7 +64,9 @@ G.tickPlay=function(){_tp.apply(this,arguments);if(!playing||!S||!$('smooth').ch
 /* =================== MULTI-CHART LAYOUTS =================== */
 var LAY=lsGet('mnqr-layout',{n:1,tfs:['15m','1h','4h']}),SEC=[];
 var secBox=document.createElement('div');secBox.id='sec';$('chartwrap').appendChild(secBox);
-G.paneH=function(){return $('chart').clientHeight-(chart.timeScale().height?chart.timeScale().height():28)};
+// the chart height is cached (reading clientHeight every frame forced a full page layout); a ResizeObserver resets it
+var PH=null;G.paneH=function(){if(PH==null)PH=$('chart').clientHeight-(chart.timeScale().height?chart.timeScale().height():28);return PH};
+if(window.ResizeObserver)new ResizeObserver(function(){PH=null}).observe($('chart'));G.addEventListener('resize',function(){PH=null});
 G.resizeOv=function(){var r=$('chart').getBoundingClientRect(),dpr=window.devicePixelRatio||1;ovW=r.width;ovH=r.height;lastSig='';ov.width=r.width*dpr;ov.height=r.height*dpr;ov.style.width=r.width+'px';ov.style.height=r.height+'px';ctx.setTransform(dpr,0,0,dpr,0,0)};
 function secChart(el){var c=LightweightCharts.createChart(el,{autoSize:true,layout:{background:{type:'solid',color:'#050608'},textColor:'#A1A7B4',fontFamily:'Geist,system-ui,sans-serif',fontSize:11},
     grid:{vertLines:{color:'#0E1116'},horzLines:{color:'#0E1116'}},rightPriceScale:{borderColor:'#1A1E26',scaleMargins:{top:.08,bottom:.08}},timeScale:{borderColor:'#1A1E26',timeVisible:true,secondsVisible:false,rightOffset:6,barSpacing:6},crosshair:{mode:0},

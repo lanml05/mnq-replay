@@ -100,8 +100,8 @@ function begin(l){if(L||LG.busy())return;var a=l.day.split('-'),st=wallToUtc(+a[
     document.body.classList.add('matchon','liveon');if(G.setOT)G.setOT('market');
     L={l:l,code:code,start:Date.parse(l.start_at)+PREP,n:0,base:lsGet('mnqr-lv-'+code,{pnl:0,trades:0,wins:0,log:[]}),nt:0,np:0,lastBeat:0,board:[],iv:0,lag:0,budget:PAUSE_MS,man:false,frozen:false,lastT:performance.now(),bh:''};
     L.cf0=lsGet('mnqr-cfmode','qty');lsSet('mnqr-cfmode','pct');// the order panel sizes by risk only (1 %)
-    L.iv=setInterval(step,100);step();ui();evStart(code)})}
-function step(){if(!L||!S)return;var now=performance.now(),dt=Math.min(1000,now-L.lastT);L.lastT=now;var el=sNow()-L.start;
+    L.iv=setInterval(step,250);(function fr(){if(!L||L.code!==code)return;step();L.raf=requestAnimationFrame(fr)})();ui();evStart(code)})}
+function step(){if(!L||!S)return;var now=performance.now(),dt=Math.min(1000,now-L.lastT);if(dt<8)return;L.lastT=now;var el=sNow()-L.start;
   // personal pause: while the order panel is open (or Pause is on) your chart stands still, then it catches up at 3x
   if(el>=0){var want=(L.man||!!$('ocf'))&&L.budget>0;if(want){L.lag+=dt;L.budget-=dt;if(L.budget<=0){L.budget=0;L.man=false;toast('Your pause time is used up')}}
     else if(L.lag>0)L.lag=Math.max(0,L.lag-dt*CATCH);L.frozen=want;el-=L.lag}
@@ -137,10 +137,10 @@ function draw(el){var b=$('mbar');if(!b){b=document.createElement('div');b.id='m
 function drawBoard(){var d=$('lvbd');if(!d){d=document.createElement('div');d.id='lvbd';document.body.appendChild(d)}
   var P=(L.board||[]).slice().sort(function(a,b){return b.r-a.r||b.pnl-a.pnl});
   d.innerHTML='<div class="lv-bt">Live</div>'+P.map(function(p,i){return'<div class="lv-br'+(p.player===me()?' me':'')+'"><span class="rk">'+(i+1)+'</span><b>'+esc(p.player)+'</b>'+(p.open?'<i title="trade open"></i>':'')+'<span class="hsp"></span><span class="'+cls(p.r)+'">'+fmtR(p.r)+'</span></div>'}).join('')}
-function cleanup(){if(!L)return;clearInterval(L.iv);if(L.cf0)lsSet('mnqr-cfmode',L.cf0);var cf=$('ocf');if(cf)cf.remove();var id=S&&S.match===L.code?S.id:null;L=null;
+function cleanup(){if(!L)return;clearInterval(L.iv);cancelAnimationFrame(L.raf);if(L.cf0)lsSet('mnqr-cfmode',L.cf0);var cf=$('ocf');if(cf)cf.remove();var id=S&&S.match===L.code?S.id:null;L=null;
   document.body.classList.remove('matchon','liveon');LG.lockTicket(false);['mbar','lvbd'].forEach(function(i){var e=$(i);if(e)e.remove()});
   if(RK0&&G.setRisk){G.setRisk(RK0.u,RK0.v);RK0=null}if(id)LG.dropSession(id);S=null}
-function end(why){if(!L)return;clearInterval(L.iv);
+function end(why){if(!L)return;clearInterval(L.iv);cancelAnimationFrame(L.raf);
   S.orders=[];S.positions.slice().forEach(function(p){closePos(p,mktExit(p.side),nowT(),'Session end')});changed();
   var t=stats(),code=L.code,day=L.l.day,res={code:code,player:me(),total_r:Math.max(-60,Math.min(300,t.r)),pnl:t.pnl,trades:t.trades,wins:t.wins,days:[{d:day,r:t.r,pnl:t.pnl,n:t.trades}]};
   lsSet('mnqr-lv-'+code,{pnl:t.pnl,trades:t.trades,wins:t.wins,log:tlog()});lsSet('mnqr-lv-res-'+code,res);lsSet('mnqr-lv-room',null);
@@ -237,5 +237,5 @@ if(LG.online)setTimeout(function(){retry();
   var q=/[?&]l=([A-Z2-9]{6})/i.exec(location.search);if(q){joinRoom(q[1].toUpperCase());return}
   // the app was closed during a live game: offer to jump back in while it is still running
   var c=lsGet('mnqr-lv-room',null);if(c)getRoom(c).then(function(R){var st=R&&R.l.start_at?Date.parse(R.l.start_at):0;if(st&&sNow()<st+PREP+GAME_MS)joinRoom(c);else lsSet('mnqr-lv-room',null)},function(){})},1000);
-G.reviewLive=review;G.__LV={RV:function(){return RV},EV:EV,L:function(){return L},sNow:sNow,openDaily:openDaily,joinRoom:joinRoom,end:end,GAME_MS:GAME_MS,setGame:function(ms,pr){GAME_MS=ms;STEP=GAME_MS/(DAY_END-H0);if(pr!=null)PREP=pr}};
+G.reviewLive=review;G.__smoothBar=smooth;G.__LV={RV:function(){return RV},EV:EV,L:function(){return L},sNow:sNow,openDaily:openDaily,joinRoom:joinRoom,end:end,GAME_MS:GAME_MS,setGame:function(ms,pr){GAME_MS=ms;STEP=GAME_MS/(DAY_END-H0);if(pr!=null)PREP=pr}};
 })();

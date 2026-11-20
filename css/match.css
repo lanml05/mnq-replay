@@ -48,7 +48,7 @@ body.matchon #bBlind,body.matchon #bLive,body.matchon #bSessions,body.matchon #b
 .mb-b{height:32px;padding:0 12px;border-radius:8px;border:1px solid rgba(126,140,255,.45);background:rgba(126,140,255,.12);color:#C9D0FF;font-weight:600;cursor:pointer;white-space:nowrap}
 .mb-b.on{background:#7E8CFF;color:#080A16}
 .mb-b.ghost{border-color:#2A2F3A;background:transparent;color:#A1A7B4}
-#mres{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(5,6,8,.62);backdrop-filter:blur(3px)}
+#mres{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(5,6,8,.72)}
 .mr-c{display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px 34px;border-radius:18px;background:#0B0D11;border:1px solid #2A2F3A;box-shadow:0 30px 80px rgba(0,0,0,.6);min-width:340px;text-align:center}
 .mr-r{font:700 46px "Geist Mono",monospace;color:#E8EAEF;line-height:1.1}
 .mr-r.pos{color:#2FCB8C}.mr-r.neg{color:#F2576B}

@@ -7,11 +7,11 @@
 <link rel="icon" href="icon.png">
 <link rel="stylesheet" href="lib/fonts/fonts.css">
 <link rel="stylesheet" href="css/v2.css?v=1795175415">
-<link rel="stylesheet" href="css/home.css?v=1795197387">
+<link rel="stylesheet" href="css/home.css?v=1795209125">
 <link rel="stylesheet" href="css/dom.css?v=1795170132">
 <link rel="stylesheet" href="css/stats.css?v=1795170329">
 <link rel="stylesheet" href="css/replay.css?v=1795170778">
-<link rel="stylesheet" href="css/match.css?v=1795176749">
+<link rel="stylesheet" href="css/match.css?v=1795209125">
 <link rel="stylesheet" href="css/live.css?v=1795198909">
 <style>
 :root{
@@ -1117,7 +1117,7 @@ function randomPoint(go){if(!S)return;stop();var x=MNQ.idx[S.src],a=x.from+3*864
 /* ---------- sessions ---------- */
 function listSessions(){return lsGet('mnqr-sessions',[])}
 var saveT=null;
-var uiT=null;function scheduleUI(){if(uiT)return;uiT=setTimeout(function(){uiT=null;if(S)ui()},16)}
+var uiT=null;function scheduleUI(){if(uiT)return;uiT=setTimeout(function(){uiT=null;if(S)ui()},playing?100:16)}// while playing the panel updates 10x a second (the chart itself still moves every frame)
 function setT(id,v){var e=$(id);if(e._t!==v){e._t=v;e.textContent=v}}
 function setH(id,v){var e=$(id);if(e._h!==v){e._h=v;e.innerHTML=v}}
 function setC(id,v){var e=$(id);if(e.className!==v)e.className=v}
@@ -1911,14 +1911,14 @@ else loadScript('data/index.js').then(function(){makeChart();resizeOv();render()
 },function(){$('empty').innerHTML='No data. Run <b>Update data</b> (fetch_mnq.py).'});
 </script>
 <script src="js/v2.js?v=1795175231"></script>
-<script src="js/home.js?v=1795204686"></script>
+<script src="js/home.js?v=1795209125"></script>
 <script src="js/dom.js?v=1795172582"></script>
 <script src="js/stats.js?v=1795204744"></script>
-<script src="js/replay.js?v=1795176714"></script>
+<script src="js/replay.js?v=1795208883"></script>
 <script src="js/instr.js?v=1795204707"></script>
 <script src="js/mconfig.js?v=1795186921"></script>
-<script src="js/match.js?v=1795198909"></script>
-<script src="js/live.js?v=1795199054"></script>
+<script src="js/match.js?v=1795209004"></script>
+<script src="js/live.js?v=1795209000"></script>
 <script src="js/theme.js?v=1795172581"></script>
 </body>
 </html>

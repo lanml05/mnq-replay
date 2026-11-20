@@ -1,6 +1,6 @@
 /* ===== MNQ Replay start page ===== */
 .home{background:#050608;overflow:auto}
-#hbg{position:fixed;inset:0;width:100%;height:100%;opacity:.9;pointer-events:none;z-index:0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
+#hbg{position:fixed;inset:0;width:100%;height:100%;opacity:.9;pointer-events:none;z-index:0}
 .hfade{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(1100px 520px at 18% -8%,rgba(126,140,255,.20),transparent 62%),radial-gradient(900px 600px at 100% 10%,rgba(142,92,255,.10),transparent 60%),linear-gradient(180deg,rgba(5,6,8,.25) 0%,rgba(5,6,8,.55) 50%,rgba(5,6,8,.9) 100%)}
 .hwrap2{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 28px 48px}
 .hwrap2>*{animation:hin .7s cubic-bezier(.16,1,.3,1) both}
@@ -13,7 +13,7 @@
 .hwrap2>*:nth-child(8){animation-delay:420ms}
 .hwrap2>*:nth-child(9){animation-delay:480ms}
 @media (prefers-reduced-motion:reduce){.hwrap2>*{animation:none}}
-@keyframes hin{from{opacity:0;transform:translateY(10px);filter:blur(2px)}}
+@keyframes hin{from{opacity:0;transform:translateY(10px)}}
 .hnav{display:flex;align-items:center;gap:10px}
 .hbrand{display:flex;align-items:center;gap:12px}
 .hbrand i{width:40px;height:40px;border-radius:12px;background:var(--accent);color:var(--ink);display:grid;place-items:center;box-shadow:0 10px 28px rgba(126,140,255,.35)}
@@ -48,7 +48,7 @@
 .hlst small{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
 .hlst b{font:600 17px var(--f-mono)}
 .hdash{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:14px;margin-top:30px}
-.hcard2{display:flex;flex-direction:column;gap:12px;padding:16px 18px;border-radius:18px;border:1px solid var(--line);background:rgba(11,13,17,.82);backdrop-filter:blur(6px)}
+.hcard2{display:flex;flex-direction:column;gap:12px;padding:16px 18px;border-radius:18px;border:1px solid var(--line);background:rgba(11,13,17,.9)}
 .hct2{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .hstreak{font-size:13px;color:var(--muted)}
 .hstreak b{font:700 22px var(--f-display);color:var(--text);margin-right:3px}

@@ -76,20 +76,20 @@ function playDay(m,i){var P=prog(m.code),key=m.days[i],a=key.split('-'),st=wallT
     if(G.setRisk)G.setRisk('pct',1);lockTicket(true);$('oSL').value='';$('oTP').value='';if(G.setOT)G.setOT('market');
     P.cur={i:i,entered:false};psave(P);
     M={m:m,i:i,phase:'pick',left:PICK_MS,last:performance.now(),acc:0,ff:false,r0:null,iv:0};
-    M.iv=setInterval(tick,100);drawBar();ui()})}
+    M.iv=setInterval(tick,250);(function fr(){if(!M||M.m!==m||M.i!==i)return;tick();M.raf=requestAnimationFrame(fr)})();drawBar();ui()})}
 function nyMin(t){var d=new Date((t+off(t,NY))*1000);return d.getUTCHours()*60+d.getUTCMinutes()}
-function tick(){if(!M||!S)return;var now=performance.now(),dt=Math.min(1000,now-M.last);M.last=now;
+function tick(){if(!M||!S||M.phase==='done')return;var now=performance.now(),dt=Math.min(1000,now-M.last);if(dt<8)return;M.last=now;
   if(M.phase==='pick'){M.left-=dt;if(S.positions.length){enter()}else if(M.left<=0){S.orders=[];endDay('time');return}}
   else if(!S.positions.length&&!S.orders.length){endDay('closed');return}
   M.acc+=dt;var per=M.ff?FF_MS:STEP_MS,n=0;
   while(M.acc>=per&&n<40){M.acc-=per;n++;if(nyMin(nowT())>=DAY_END){endDay('eod');return}reveal(1);
     if(M&&M.phase==='pick'&&S.positions.length){enter();break}
     if(M&&M.phase==='trade'&&!S.positions.length&&!S.orders.length){endDay('closed');return}}
-  drawBar()}
+  if(M&&!M.ff&&G.__smoothBar)G.__smoothBar(M.acc/per);drawBar()}
 function enter(){var p=S.positions[0];M.phase='trade';S.orders=[];
   var risk=p.sl!=null?Math.abs(p.entry-p.sl)*p.qty*S.pv+comm(p.qty):RISK$;M.r0=risk;
   var P=prog(M.m.code);if(P.cur){P.cur.entered=true;P.cur.r0=risk;psave(P)}snd&&snd('open');changed();drawBar()}
-function endDay(why){if(!M)return;clearInterval(M.iv);M.iv=0;
+function endDay(why){if(!M)return;clearInterval(M.iv);M.iv=0;cancelAnimationFrame(M.raf);
   S.orders=[];S.positions.slice().forEach(function(p){closePos(p,mktExit(p.side),nowT(),'Session end')});changed();
   var pnl=S.trades.reduce(function(a,t){return a+t.pnl},0),r0=M.r0||RISK$,r=S.trades.length?pnl/r0:0;
   var P=prog(M.m.code),key=M.m.days[M.i],t0=S.trades[0];
@@ -106,7 +106,7 @@ function endDay(why){if(!M)return;clearInterval(M.iv);M.iv=0;
   $('mrNext').onclick=function(){box.remove();if(last){finishMatch(M.m)}else{var m=M.m,i=M.i+1;M=null;playDay(m,i)}};
   setTimeout(function(){var b=$('mrNext');if(b)b.focus()},50)}
 function dropSession(id){try{localStorage.removeItem('mnqr-s-'+id)}catch(e){}lsSet('mnqr-sessions',listSessions().filter(function(x){return x.id!==id}));if(lsGet('mnqr-last',null)===id)lsSet('mnqr-last',null);if(G.imgDelPrefix)imgDelPrefix(id+':')}
-function stopMatch(){if(M&&M.iv)clearInterval(M.iv);M=null;document.body.classList.remove('matchon');lockTicket(false);var b=$('mbar');if(b)b.remove();var r=$('mres');if(r)r.remove();
+function stopMatch(){if(M){clearInterval(M.iv);cancelAnimationFrame(M.raf)}M=null;document.body.classList.remove('matchon');lockTicket(false);var b=$('mbar');if(b)b.remove();var r=$('mres');if(r)r.remove();
   if(RK0&&G.setRisk){G.setRisk(RK0.u,RK0.v);RK0=null}}
 function leave(){if(!M)return;var m=M.m;
   if(M.phase==='done'){var id0=S&&S.id;stopMatch();if(id0)dropSession(id0);S=null;showHome();return}
@@ -114,12 +114,12 @@ function leave(){if(!M)return;var m=M.m;
     var m2=M.m;endDay('left');var r=$('mres');if(r)r.remove();if(prog(m2.code).results.length>=m2.days.length){finishMatch(m2);return}var id=S&&S.id;stopMatch();if(id)dropSession(id);S=null;showHome()})}
 function drawBar(){if(!M){return}var b=bar(),m=M.m,mm=Math.max(0,Math.ceil(M.left/1000)),pct=Math.max(0,M.left/PICK_MS*100),T=totals(prog(m.code).results);
   var st=M.phase==='pick'?(S.orders.length?'Order waiting · it must fill within the time':'Take ONE trade · stop loss required · risk is 1 %'):M.phase==='trade'?'Trade running · manage it or fast forward to the end':'Day finished';
-  b.innerHTML='<div class="mb-l"><span class="mb-code">'+esc2(m.name)+'</span><span class="mb-day">Day <b>'+(M.i+1)+'</b> / '+m.days.length+' · total <b class="'+cls(T.r)+'">'+fmtR(T.r)+'</b></span></div>'+
-    (M.phase==='pick'?'<div class="mb-t'+(mm<=30?' warn':'')+'"><b>'+Math.floor(mm/60)+':'+p2(mm%60)+'</b><i style="width:'+pct+'%"></i></div>':M.phase==='trade'?'<div class="mb-t live"><b>LIVE</b></div>':'')+
+  var h='<div class="mb-l"><span class="mb-code">'+esc2(m.name)+'</span><span class="mb-day">Day <b>'+(M.i+1)+'</b> / '+m.days.length+' · total <b class="'+cls(T.r)+'">'+fmtR(T.r)+'</b></span></div>'+
+    (M.phase==='pick'?'<div class="mb-t'+(mm<=30?' warn':'')+'"><b>'+Math.floor(mm/60)+':'+p2(mm%60)+'</b><i style="width:'+pct.toFixed(1)+'%"></i></div>':M.phase==='trade'?'<div class="mb-t live"><b>LIVE</b></div>':'')+
     '<span class="mb-s">'+st+'</span>'+
     (M.phase==='trade'?'<button class="mb-b'+(M.ff?' on':'')+'" data-mb="ff">'+(M.ff?'Normal speed':'Fast forward')+'</button>':'')+
     (M.phase==='pick'?'<button class="mb-b" data-mb="skip">Skip day</button>':'')+
-    '<button class="mb-b ghost" data-mb="leave">Leave</button>'}
+    '<button class="mb-b ghost" data-mb="leave">Leave</button>';if(b._h!==h){b._h=h;b.innerHTML=h}}
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-mb]');if(!b||!M)return;var a=b.dataset.mb;
   if(a==='ff'){M.ff=!M.ff;drawBar()}else if(a==='skip'){uiConfirm('Skip this day with no trade (0R)?','Skip').then(function(ok){if(ok&&M&&M.phase==='pick'){S.orders=[];endDay('skip')}})}else if(a==='leave')leave()});
 // fair play: no pause, no stepping, no rewinding, one trade per day, stop loss required
