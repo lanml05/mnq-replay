@@ -20,7 +20,7 @@ function startDay(y,m,d,hh,mm,name,tries){var start=wallToUtc(y,m,d,hh,mm,NY),sr
   loadFor(start).then(function(){var B=bars(src),k=lowerBound(B,start);if(k>=B.length||B[k][0]>start+3*3600){toast('That day was a holiday, pick another');return}
     var s={id:uid(),name:name,start:start,curT:start-1,src:src,bal0:50000,pv:lsGet('mnqr-sym','nq')==='es'?5:2,comm:0.5,spread:0.25,slip:0,daily:null,maxdd:null,positions:[],orders:[],trades:[],drawings:[],tf:null};
     openSession(s).then(function(){if(S)hideHome()})})}
-G.startDay=startDay;
+G.startDay=startDay;G.dailyPick=dailyPick;
 
 /* ---------- live chart in the background ---------- */
 var BG={raf:0,c:null,bars:null,off:0,last:0};
@@ -79,7 +79,7 @@ G.renderHome=function(){var D=sessData(),last=lsGet('mnqr-last',null),L=D.filter
   h+='<div class="hdash"><div class="hcard2"><div class="hct2"><span class="heye">Practice streak</span><span class="hstreak"><b>'+st+'</b> '+(st===1?'day':st===2?'days':st<5&&st>0?'days':'days')+' in a row</span></div>'+heatHtml()+'<div class="hleg"><span>Less</span><i></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i><span>More</span></div></div>'+
     '<div class="hcard2"><div class="hct2"><span class="heye">Weekly progress</span><span class="hmini">sum of R</span></div>'+weekBars(D)+'</div>'+
     '<div class="hcard2 hdaily"><div class="hct2"><span class="heye">Daily challenge</span><span class="hmini">same day for everyone today</span></div>'+
-      (dp?'<b class="hdd">'+DAYN[dp.w]+', '+dp.d+'. '+dp.m+'. '+dp.y+'</b><span class="hld">Starts 9:00 NY, half an hour before the open. Trade only your A setup and see what you make of this day.</span><button class="hsec acc" data-hdaily="1">'+ico('play')+'Accept challenge</button>':'<span class="hld">Data is still loading.</span>')+'</div></div>';
+      (dp?'<b class="hdd">'+DAYN[dp.w]+', '+dp.d+'. '+dp.m+'. '+dp.y+'</b><span class="hld">Play it live with friends: everyone starts together, 9:00–16:00 NY in 20 minutes. Or play it alone.</span><button class="hsec acc" data-hdaily="1">'+ico('play')+'Play together</button>':'<span class="hld">Data is still loading.</span>')+'</div></div>';
   // stats
   if(A){var tiles=[['Trades','<b data-cu="'+A.n+'">'+A.n+'</b>'],['Win rate','<b data-cu="'+A.wr+'" data-suf=" %">'+A.wr+' %</b>'],['Net P&amp;L',moneyCU(A.net)],['Profit factor','<b>'+(A.pf!=null?A.pf.toFixed(2):'∞')+'</b>'],['Avg. R','<b class="'+cls(A.ar||0)+'">'+(A.ar!=null?A.ar.toFixed(2)+'R':'–')+'</b>'],
       ['Best hour','<b>'+(A.bh&&A.bh.v>0?p2(A.bh.k)+':00':'–')+'</b>'+(A.bh&&A.bh.v>0?'<small class="pos">'+money(A.bh.v,1)+'</small>':'')],['Worst hour','<b>'+(A.worstH&&A.worstH.v<0?p2(A.worstH.k)+':00':'–')+'</b>'+(A.worstH&&A.worstH.v<0?'<small class="neg">'+money(A.worstH.v,1)+'</small>':'')],['Best day','<b>'+(A.bd&&A.bd.v>0?WD[A.bd.k]:'–')+'</b>']];

@@ -146,15 +146,15 @@ function shareUrl(code){return location.protocol==='file:'?code:location.origin+
 function modal(html){var m=document.createElement('div');m.className='modal lgm';m.innerHTML='<div class="box lgbox">'+html+'</div>';document.body.appendChild(m);
   m.addEventListener('click',function(e){if(e.target===m||e.target.closest('[data-lx]'))m.remove()});return m}
 function openMatch(code){Promise.all([DB.match(code),DB.results(code)]).then(function(a){var m=a[0],R=a[1]||[];if(!m){toast('No match with code '+code);return}
-  var P=prog(code),T=totals(P.results),done=P.results.length>=m.days.length,mine=R.filter(function(x){return x.player===me()})[0];
+  var live=m.kind==='live',P=prog(code),T=totals(P.results),done=live||P.results.length>=m.days.length,mine=R.filter(function(x){return x.player===me()})[0];
   R.sort(function(x,y){return y.total_r-x.total_r||y.pnl-x.pnl});
   var cols=m.days.map(function(d,i){return'<th>D'+(i+1)+'</th>'}).join('');
   var rows=R.map(function(x,i){var ds=(x.days||[]);return'<tr class="'+(x.player===me()?'me':'')+'"><td class="rk">'+(i===0?'<span class="cr">1</span>':(i+1))+'</td><td class="pl">'+esc2(x.player)+'</td><td class="'+cls(x.total_r)+' tr">'+fmtR(x.total_r)+'</td><td class="'+cls(x.pnl)+'">'+money(x.pnl,1)+'</td><td>'+x.trades+'/'+m.days.length+'</td>'+
       m.days.map(function(d,j){var y=ds[j];return'<td class="dd '+(y?cls(y.r):'')+'">'+(y?(y.n?(+y.r).toFixed(1):'·'):'')+'</td>'}).join('')+'</tr>'}).join('');
-  var you=done?'<div class="lg-you">Your result <b class="'+cls(T.r)+'">'+fmtR(T.r)+'</b> · '+money(T.pnl,1)+' · '+T.n+' trades'+(P.submitted||mine?'':' · <span class="neg">not sent yet</span>')+'</div>'
+  var you=live?(mine?'<div class="lg-you">Your result <b class="'+cls(mine.total_r)+'">'+fmtR(mine.total_r)+'</b> · '+money(mine.pnl,1)+' · '+mine.trades+' trades</div>':''):done?'<div class="lg-you">Your result <b class="'+cls(T.r)+'">'+fmtR(T.r)+'</b> · '+money(T.pnl,1)+' · '+T.n+' trades'+(P.submitted||mine?'':' · <span class="neg">not sent yet</span>')+'</div>'
     :'<div class="lg-you">'+(P.results.length?'You played '+P.results.length+' of '+m.days.length+' days · '+fmtR(T.r):'You haven’t played this match yet')+'</div>';
   var md=modal('<div class="dhead"><b>'+esc2(m.name)+'</b><span class="lg-code" title="Match code">'+code+'</span><span class="hsp"></span><button class="hb" data-lx="1">'+ico('x')+'</button></div>'+
-    '<div class="lg-meta">'+m.days.length+' days · 5 minutes per day to take one trade · blind · score in R'+(m.created_by?' · by '+esc2(m.created_by):'')+'</div>'+you+
+    '<div class="lg-meta">'+(live?'Live daily challenge · everyone played the same day at the same time in 20 minutes · score in R':m.days.length+' days · 5 minutes per day to take one trade · blind · score in R')+(m.created_by?' · by '+esc2(m.created_by):'')+'</div>'+you+
     '<div class="lg-act">'+(done?'':'<button class="hbig" data-lp="1">'+ico('play')+(P.results.length?'Continue match':'Play match')+'</button>')+
       '<button class="hsec" data-ls="1">'+ico('send')+'Copy invite link</button><button class="hsec" data-lr="1">Refresh</button></div>'+
     '<div class="lg-tw">'+(R.length?'<table class="lg-t"><tr><th></th><th>Player</th><th>R</th><th>Profit</th><th>Trades</th>'+cols+'</tr>'+rows+'</table>':'<p class="dim">Nobody has finished this match yet. Be the first.</p>')+'</div>');
@@ -164,6 +164,7 @@ function openMatch(code){Promise.all([DB.match(code),DB.results(code)]).then(fun
       (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast('Invite copied · paste it in Discord')},function(){G.uiPrompt('Copy this invite',t)})}
     else if(b.dataset.lr){md.remove();openMatch(code)}})}).catch(function(e){toast('League is offline: '+(e&&e.message?e.message.slice(0,80):'error'))})}
 G.openMatch=openMatch;G.__MT=function(){return M};
+Object.assign(G.__LG,{api:api,me:me,needName:needName,modal:modal,newCode:newCode,dropSession:dropSession,lockTicket:lockTicket,fmtR:fmtR,useMNQ:useMNQ,renderLeague:renderLeague,esc:esc2,nyMin:nyMin,busy:function(){return!!M}});
 
 function newMatch(){needName().then(function(n){if(!n)return;var md=modal('<div class="dhead"><b>New match</b><span class="hsp"></span><button class="hb" data-lx="1">'+ico('x')+'</button></div>'+
     '<label class="f">Name<input id="lgName" maxlength="40" value="'+esc2(n)+'’s match '+(new Date().getDate())+'. '+(new Date().getMonth()+1)+'."></label>'+
@@ -186,9 +187,9 @@ function renderLeague(){var host=$('lgHome');if(!host)return;
   Promise.all([DB.matches(),DB.results()]).then(function(a){var Ms=a[0]||[],R=a[1]||[],S2=season(R),byC={};R.forEach(function(x){(byC[x.code]=byC[x.code]||[]).push(x)});
     var st=S2.length?'<table class="lg-s"><tr><th></th><th>Player</th><th title="3 for a match win, 2 for second, 1 for third">Pts</th><th>Wins</th><th>R</th><th>Matches</th></tr>'+S2.slice(0,10).map(function(p,i){return'<tr class="'+(p.n===me()?'me':'')+'"><td class="rk">'+(i===0?'<span class="cr">1</span>':(i+1))+'</td><td class="pl">'+esc2(p.n)+'</td><td><b>'+p.pts+'</b></td><td>'+p.w+'</td><td class="'+cls(p.r)+'">'+fmtR(p.r)+'</td><td>'+p.m+'</td></tr>'}).join('')+'</table>'
       :'<p class="dim">No results yet. Create a match and send the code to your friends.</p>';
-    var ml=Ms.length?Ms.slice(0,8).map(function(m){var L=(byC[m.code]||[]).sort(function(a,b){return b.total_r-a.total_r}),P=prog(m.code),done=P.results.length>=m.days.length,lead=L[0];
-        return'<button class="lg-mi" data-lo="'+m.code+'"><span class="lg-mn"><b>'+esc2(m.name)+'</b><small>'+m.days.length+' days · '+L.length+' played'+(lead?' · leader '+esc2(lead.player)+' '+fmtR(lead.total_r):'')+'</small></span>'+
-          '<span class="lg-ms '+(done?cls(totals(P.results).r):'go')+'">'+(done?fmtR(totals(P.results).r):P.results.length?'Continue':'Play')+'</span></button>'}).join('')
+    var ml=Ms.length?Ms.slice(0,8).map(function(m){var L=(byC[m.code]||[]).sort(function(a,b){return b.total_r-a.total_r}),P=prog(m.code),live=m.kind==='live',mine=L.filter(function(x){return x.player===me()})[0],done=live?!!mine:P.results.length>=m.days.length,lead=L[0];
+        return'<button class="lg-mi" data-lo="'+m.code+'"><span class="lg-mn"><b>'+esc2(m.name)+'</b><small>'+(live?'Live · 1 day':m.days.length+' days')+' · '+L.length+' played'+(lead?' · leader '+esc2(lead.player)+' '+fmtR(lead.total_r):'')+'</small></span>'+
+          '<span class="lg-ms '+(live?(mine?cls(mine.total_r):''):done?cls(totals(P.results).r):'go')+'">'+(live?(mine?fmtR(mine.total_r):'Live'):done?fmtR(totals(P.results).r):P.results.length?'Continue':'Play')+'</span></button>'}).join('')
       :'<p class="dim">No matches yet.</p>';
     host.querySelector('.lg-body').innerHTML='<div class="hcard2"><div class="hct2"><span class="heye">Season table</span><span class="hmini">3 · 2 · 1 points per match</span></div>'+st+'</div>'+
       '<div class="hcard2"><div class="hct2"><span class="heye">Matches</span><span class="hmini">'+Ms.length+'</span></div><div class="lg-ml">'+ml+'</div></div>'},
