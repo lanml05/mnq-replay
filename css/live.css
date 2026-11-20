@@ -24,3 +24,11 @@
 .lv-br .hsp{display:none}
 @media (max-width:1100px){#lvbd{top:auto;bottom:10px;max-width:calc(100vw - 24px)}}
 .mb-t.prep b{color:#E8C27A}.mb-t.prep i{background:#E4B24C}
+
+.lv-pz{color:#E8C27A}
+body.liveon #ocf .ocf-m{display:none}
+body.liveon #ocf #cfR{opacity:.7;cursor:default}
+.mb-b[disabled]{opacity:.4;cursor:default}
+/* no blur behind the bars while the chart moves (blur over a moving chart is expensive) */
+#mbar,#lvbd{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#mbar{background:#0B0D11}#lvbd{background:#0B0D11}

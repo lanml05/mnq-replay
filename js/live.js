@@ -6,7 +6,7 @@
 (function(){
 'use strict';
 var G=window,LG=G.__LG;if(!LG)return;
-var PREP=2*60*1000,GAME_MS=20*60*1000,BAL=50000,RISK$=500,H0=9*60,DAY_END=15*60+58,STEP=GAME_MS/(DAY_END-H0),BEAT=4000,FRESH=15000;
+var PAUSE_MS=60*1000,CATCH=2,PREP=2*60*1000,GAME_MS=20*60*1000,BAL=50000,RISK$=500,H0=9*60,DAY_END=15*60+58,STEP=GAME_MS/(DAY_END-H0),BEAT=4000,FRESH=15000;
 var api=LG.api,me=LG.me,esc=LG.esc,fmtR=LG.fmtR;
 var DN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
@@ -34,7 +34,7 @@ function openDaily(){
   LG.needName().then(function(n){if(!n)return;
   LG.useMNQ().then(function(){var key=todayKey();if(!key){toast('Data is still loading');return}
     var md=win('<div class="dhead"><b>Daily challenge</b><span class="lv-day">'+dayLabel(key)+'</span><span class="hsp"></span><button class="hb" data-lx="1">'+ico('x')+'</button></div>'+
-      '<p class="lg-meta">Everyone plays this day at the same time: 9:00–16:00 NY runs in <b>20 minutes</b>. First 2 minutes to look at the chart and mark your levels. No pause, no rewind. Risk is 1 % per trade, stop loss required. Most R wins.</p>'+
+      '<p class="lg-meta">Everyone plays this day at the same time: 9:00–16:00 NY runs in <b>20 minutes</b>. First 2 minutes to look at the chart and mark your levels. No rewind. When you open BUY/SELL your chart pauses for you (60 s per game), then it catches up. Risk is 1 % per trade, stop loss required. Most R wins.</p>'+
       '<div class="lg-act"><button class="hbig" data-lv="new">'+ico('plus')+'Create a room</button><button class="hsec" data-lv="join">Join with code</button><button class="hsec" data-lv="solo">'+ico('play')+'Play alone</button></div>'+
       '<div class="lg-l">Rooms waiting for players</div><div class="lv-rooms"><p class="dim">Loading …</p></div>');
     function rooms(){api('lobbies?start_at=is.null&created_at=gte.'+encodeURIComponent(new Date(Date.now()-3*3600e3).toISOString())+'&order=created_at.desc&limit=8').then(function(L){
@@ -95,32 +95,44 @@ function begin(l){if(L||LG.busy())return;var a=l.day.split('-'),st=wallToUtc(+a[
     if(G.hideHome)G.hideHome();
     if(!RK0&&G.__RK)RK0={u:G.__RK.u,v:G.__RK.v};if(G.setRisk)G.setRisk('pct',1);LG.lockTicket(true);
     document.body.classList.add('matchon','liveon');if(G.setOT)G.setOT('market');
-    L={l:l,code:code,start:Date.parse(l.start_at)+PREP,n:0,base:lsGet('mnqr-lv-'+code,{pnl:0,trades:0,wins:0}),nt:0,lastBeat:0,board:[],iv:0};
-    L.iv=setInterval(step,200);step();ui()})}
-function step(){if(!L||!S)return;var el=sNow()-L.start;
+    L={l:l,code:code,start:Date.parse(l.start_at)+PREP,n:0,base:lsGet('mnqr-lv-'+code,{pnl:0,trades:0,wins:0}),nt:0,lastBeat:0,board:[],iv:0,lag:0,budget:PAUSE_MS,man:false,frozen:false,lastT:performance.now(),bh:''};
+    L.cf0=lsGet('mnqr-cfmode','qty');lsSet('mnqr-cfmode','pct');// the order panel sizes by risk only (1 %)
+    L.iv=setInterval(step,100);step();ui()})}
+function step(){if(!L||!S)return;var now=performance.now(),dt=Math.min(1000,now-L.lastT);L.lastT=now;var el=sNow()-L.start;
+  // personal pause: while the order panel is open (or Pause is on) your chart stands still, then it catches up at 3x
+  if(el>=0){var want=(L.man||!!$('ocf'))&&L.budget>0;if(want){L.lag+=dt;L.budget-=dt;if(L.budget<=0){L.budget=0;L.man=false;toast('Your pause time is used up')}}
+    else if(L.lag>0)L.lag=Math.max(0,L.lag-dt*CATCH);L.frozen=want;el-=L.lag}
   if(el<0){if(Date.now()-L.lastBeat>=BEAT){L.lastBeat=Date.now();send(false)}draw(el);return}// prep: the chart stands still, mark your levels
   if(!L.go){L.go=1;if(typeof snd==='function')snd('open');toast('The chart is running · good luck')}
   if(el>=GAME_MS){end('time');return}
   var target=Math.min(DAY_END-H0,Math.floor(el/STEP)+1),k=0;
   while(L.n<target&&k<600){if(LG.nyMin(nowT())>=DAY_END)break;reveal(1);L.n++;k++}
+  if(!L.frozen)smooth((el-(L.n-1)*STEP)/STEP);
   if(S.trades.length!==L.nt){L.nt=S.trades.length;var t=stats();lsSet('mnqr-lv-'+L.code,{pnl:t.pnl,trades:t.trades,wins:t.wins})}
   if(Date.now()-L.lastBeat>=BEAT){L.lastBeat=Date.now();send(false)}
   draw(el)}
+function smooth(f){try{if(cur>=SRC.length-1)return;f=Math.max(0,Math.min(.999,f));var nb=SRC[cur+1],up=nb[4]>=nb[1],P=up?[nb[1],nb[3],nb[2],nb[4]]:[nb[1],nb[2],nb[3],nb[4]],seg=f*3,i=Math.min(2,Math.floor(seg)),fr=seg-i,px=P[i]+(P[i+1]-P[i])*fr;
+  var hi=nb[1],lo=nb[1];for(var k=0;k<=i;k++){hi=Math.max(hi,P[k]);lo=Math.min(lo,P[k])}hi=Math.max(hi,px);lo=Math.min(lo,px);px=q4(px);
+  var key=keyOf(nb[0],TF),cb=curBar&&curBar.key===key?{t:ctOf(key,TF),o:curBar.o,h:Math.max(curBar.h,hi),l:Math.min(curBar.l,lo)}:{t:ctOf(key,TF),o:nb[1],h:hi,l:lo};
+  if(CT.length&&cb.t<CT[CT.length-1])return;cs.update({time:cb.t,open:cb.o,high:cb.h,low:cb.l,close:px})}catch(e){}}
 function send(done){var t=stats(),code=L.code;
   return beat(code,{r:t.r,pnl:t.pnl,trades:t.trades,open:!!S.positions.length,done:!!done}).then(function(){return getRoom(code)}).then(function(R){if(R&&L&&L.code===code){L.board=R.p;drawBoard()}return R},function(){})}
-function draw(el){var b=$('mbar');if(!b){b=document.createElement('div');b.id='mbar';document.body.appendChild(b)}var t=stats(),left=GAME_MS-el;
-  if(el<0){b.innerHTML='<div class="mb-l"><span class="mb-code">Live · '+esc(L.l.host)+'’s room</span><span class="mb-day">Preparation</span></div>'+
+function setBar(b,h){if(L.bh!==h){L.bh=h;b.innerHTML=h}}
+function draw(el){var b=$('mbar');if(!b){b=document.createElement('div');b.id='mbar';document.body.appendChild(b);L.bh=''}var t=stats(),left=GAME_MS-el;
+  if(el<0){setBar(b,'<div class="mb-l"><span class="mb-code">Live · '+esc(L.l.host)+'’s room</span><span class="mb-day">Preparation</span></div>'+
     '<div class="mb-t prep"><b>'+mmss(-el)+'</b><i style="width:'+Math.max(0,-el/PREP*100)+'%"></i></div>'+
     '<span class="mb-s">Look at the chart and mark your levels · the chart starts for everyone when the time runs out · trading opens then</span>'+
-    '<button class="mb-b ghost" data-lb="leave">Leave</button>';return}
-  b.innerHTML='<div class="mb-l"><span class="mb-code">Live · '+esc(L.l.host)+'’s room</span><span class="mb-day">You <b class="'+cls(t.r)+'">'+fmtR(t.r)+'</b> · '+t.trades+' trades</span></div>'+
-    '<div class="mb-t'+(left<=60000?' warn':'')+'"><b>'+mmss(left)+'</b><i style="width:'+Math.max(0,left/GAME_MS*100)+'%"></i></div>'+
-    '<span class="mb-s">Risk 1 % per trade · stop loss required · the day runs for everyone at the same speed</span>'+
-    '<button class="mb-b ghost" data-lb="leave">Leave</button>'}
+    '<button class="mb-b ghost" data-lb="leave">Leave</button>');return}
+  var ps=Math.ceil(L.budget/1000),st=L.frozen?'<b class="lv-pz">Paused for you</b> · '+ps+' s of pause left · the others keep playing, you catch up after':L.lag>500?'Catching up ×'+(CATCH+1)+' · '+Math.ceil(L.lag/1000)+' s behind':'Risk 1 % per trade · stop loss required · opening BUY/SELL pauses your chart';
+  setBar(b,'<div class="mb-l"><span class="mb-code">Live · '+esc(L.l.host)+'’s room</span><span class="mb-day">You <b class="'+cls(t.r)+'">'+fmtR(t.r)+'</b> · '+t.trades+' trades</span></div>'+
+    '<div class="mb-t'+(L.frozen?' prep':left<=60000?' warn':'')+'"><b>'+mmss(left)+'</b><i style="width:'+Math.max(0,left/GAME_MS*100).toFixed(1)+'%"></i></div>'+
+    '<span class="mb-s">'+st+'</span>'+
+    '<button class="mb-b'+(L.man?' on':'')+'" data-lb="pause"'+(L.budget>0?'':' disabled')+' title="Pause your chart (P) · 60 s per game">'+(L.man?'Resume':'Pause · '+ps+' s')+'</button>'+
+    '<button class="mb-b ghost" data-lb="leave">Leave</button>')}
 function drawBoard(){var d=$('lvbd');if(!d){d=document.createElement('div');d.id='lvbd';document.body.appendChild(d)}
   var P=(L.board||[]).slice().sort(function(a,b){return b.r-a.r||b.pnl-a.pnl});
   d.innerHTML='<div class="lv-bt">Live</div>'+P.map(function(p,i){return'<div class="lv-br'+(p.player===me()?' me':'')+'"><span class="rk">'+(i+1)+'</span><b>'+esc(p.player)+'</b>'+(p.open?'<i title="trade open"></i>':'')+'<span class="hsp"></span><span class="'+cls(p.r)+'">'+fmtR(p.r)+'</span></div>'}).join('')}
-function cleanup(){if(!L)return;clearInterval(L.iv);var id=S&&S.match===L.code?S.id:null;L=null;
+function cleanup(){if(!L)return;clearInterval(L.iv);if(L.cf0)lsSet('mnqr-cfmode',L.cf0);var cf=$('ocf');if(cf)cf.remove();var id=S&&S.match===L.code?S.id:null;L=null;
   document.body.classList.remove('matchon','liveon');LG.lockTicket(false);['mbar','lvbd'].forEach(function(i){var e=$(i);if(e)e.remove()});
   if(RK0&&G.setRisk){G.setRisk(RK0.u,RK0.v);RK0=null}if(id)LG.dropSession(id);S=null}
 function end(why){if(!L)return;clearInterval(L.iv);
@@ -140,11 +152,15 @@ function results(code,day,t,why){var md=win('<div class="dhead"><b>Live challeng
     if(P.every(function(p){return p.done})||++n>120){clearInterval(W.iv)}},function(){})}
   f();W.iv=setInterval(f,3000);if(LG.renderLeague)setTimeout(LG.renderLeague,1500)}
 function leaveLive(){if(!L)return;uiConfirm('Leave the live challenge? Open trades are closed now and your result so far counts.','Leave').then(function(ok){if(ok&&L)end('left')})}
-document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-lb]');if(b&&L)leaveLive()});
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-lb]');if(!b||!L)return;if(b.dataset.lb==='pause'){togglePause();return}leaveLive()});
+function togglePause(){if(!L||sNow()<L.start)return;if(!L.man&&L.budget<=0){toast('No pause time left');return}L.man=!L.man;L.bh=''}
+// the risk field in the order panel stays at 1 %
+document.addEventListener('focusin',function(e){if(L&&e.target&&e.target.id==='cfR')e.target.readOnly=true});
 
 /* ---------- fair play: no pause, no stepping, no rewinding, stop loss required ---------- */
 G.addEventListener('keydown',function(e){if(!L)return;var k=e.key;if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
-  if(k===' '||k==='ArrowRight'||k==='ArrowLeft'||k==='x'||k==='X'){e.preventDefault();e.stopImmediatePropagation()}},true);
+  if(k===' '||k==='ArrowRight'||k==='ArrowLeft'||k==='x'||k==='X'){e.preventDefault();e.stopImmediatePropagation()}
+  if(k==='p'||k==='P'){e.preventDefault();e.stopImmediatePropagation();togglePause()}},true);
 ['play','stepCandle','jumpTo','rewindTo'].forEach(function(f){var o=G[f];if(typeof o!=='function')return;G[f]=function(){if(L)return;return o.apply(this,arguments)}});
 var _ct=G.canTrade;G.canTrade=function(q){if(L&&sNow()<L.start){toast('Preparation · trading opens when the chart starts');return false}if(L&&S&&S.match===L.code&&!(num($('oSL').value)>0)){toast('Set a stop loss first · it decides your R');return false}return _ct.apply(this,arguments)};
 var _home=G.showHome;G.showHome=function(){if(L){leaveLive();return}return _home.apply(this,arguments)};
