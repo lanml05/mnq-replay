@@ -193,7 +193,8 @@ function renderLeague(){var host=$('lgHome');if(!host)return;
     host.querySelector('.lg-body').innerHTML='<div class="hcard2"><div class="hct2"><span class="heye">Season table</span><span class="hmini">3 · 2 · 1 points per match</span></div>'+st+'</div>'+
       '<div class="hcard2"><div class="hct2"><span class="heye">Matches</span><span class="hmini">'+Ms.length+'</span></div><div class="lg-ml">'+ml+'</div></div>'},
     function(e){host.querySelector('.lg-body').innerHTML='<div class="hcard2"><p class="dim">League is offline right now ('+esc2(e&&e.message?e.message.slice(0,60):'error')+').</p></div>'})}
-var _rh=G.renderHome;G.renderHome=function(){_rh.apply(this,arguments);var d=document.querySelector('#home .hdash');if(!d)return;
+function purgeMatchSessions(){listSessions().forEach(function(x){if(String(x.id).indexOf('mt-')===0&&!(M&&S&&S.id===x.id))dropSession(x.id)})}
+var _rh=G.renderHome;G.renderHome=function(){purgeMatchSessions();_rh.apply(this,arguments);var d=document.querySelector('#home .hdash');if(!d)return;
   d.insertAdjacentHTML('afterend','<div id="lgHome"><div class="hsec2"><h2>Friends league <small>'+(ONLINE?'online':'test mode · only on this device')+'</small></h2><div class="lg-top">'+
     '<button class="hsec acc" data-lg="new">'+ico('plus')+'New match</button><button class="hsec" data-lg="join">Join with code</button><button class="hsec" data-lg="name" title="Your name in the league">'+esc2(me()||'Set your name')+'</button></div></div><div class="lg-body lgrid"><div class="hcard2"><p class="dim">Loading …</p></div></div></div>');
   renderLeague();retryPending()};
