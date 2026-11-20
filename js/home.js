@@ -14,8 +14,11 @@ var _tr=G.tradeRec;G.tradeRec=function(){var r=_tr.apply(this,arguments);r.rt=Da
 function streak(){var L=plog(),d=new Date(),n=0;if(!L[dkey(d)])d.setDate(d.getDate()-1);while(L[dkey(d)]){n++;d.setDate(d.getDate()-1)}return n}
 
 /* ---------- daily challenge: the same random weekday for the whole day ---------- */
+// days without a usable 1m session (missing history, holidays, half days) come from the data index
+var GS=null,GSK=null;function gapDay(d){var g=MNQ.idx&&MNQ.idx.gaps;if(!g)return false;if(GSK!==g){GS={};g.forEach(function(k){GS[k]=1});GSK=g}return!!GS[d.getUTCFullYear()+'-'+p2(d.getUTCMonth()+1)+'-'+p2(d.getUTCDate())]}
+G.gapDay=gapDay;
 function dailyPick(){var x=MNQ.idx&&MNQ.idx['1m'];if(!x)return null;var seed=+dkey(new Date()).replace(/-/g,''),r=function(){seed=(seed*16807)%2147483647;return seed/2147483647};
-  for(var i=0;i<60;i++){var t=x.from+5*86400+r()*(x.to-x.from-8*86400),d=new Date((t+off(t,NY))*1000),w=d.getUTCDay();if(w>0&&w<6)return{y:d.getUTCFullYear(),m:d.getUTCMonth()+1,d:d.getUTCDate(),w:w}}return null}
+  for(var i=0;i<60;i++){var t=x.from+5*86400+r()*(x.to-x.from-8*86400),d=new Date((t+off(t,NY))*1000),w=d.getUTCDay();if(w>0&&w<6&&!gapDay(d))return{y:d.getUTCFullYear(),m:d.getUTCMonth()+1,d:d.getUTCDate(),w:w}}return null}
 function startDay(y,m,d,hh,mm,name,tries){var start=wallToUtc(y,m,d,hh,mm,NY),src=pickSrc(start);if(!src){toast('No data for that day');return}
   loadFor(start).then(function(){var B=bars(src),k=lowerBound(B,start);if(k>=B.length||B[k][0]>start+3*3600){toast('That day was a holiday, pick another');return}
     var s={id:uid(),name:name,start:start,curT:start-1,src:src,bal0:50000,pv:lsGet('mnqr-sym','nq')==='es'?5:2,comm:0.5,spread:0.25,slip:0,daily:null,maxdd:null,positions:[],orders:[],trades:[],drawings:[],tf:null};

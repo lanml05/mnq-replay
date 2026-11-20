@@ -1171,7 +1171,7 @@ function ui(){if(!S)return;var p=price(),ob=openPnl(),bal=closedBal(),dp=dayPnl(
   var dd=bal+ob-S.bal0, rl=[];
   rl.push('Start: <b>'+money(S.bal0)+'</b> · P&amp;L: <b class="'+cls(dd)+'">'+money(dd,1)+'</b>');
   if(S.daily)rl.push('Daily limit: <b class="'+(dp<=-S.daily?'neg':'')+'">'+money(dp,1)+' / −$'+S.daily+'</b>');
-  if(S.maxdd)rl.push('Max izguba: <b class="'+(dd<=-S.maxdd?'neg':'')+'">'+money(dd,1)+' / −$'+S.maxdd+'</b>');
+  if(S.maxdd)rl.push('Max loss: <b class="'+(dd<=-S.maxdd?'neg':'')+'">'+money(dd,1)+' / −$'+S.maxdd+'</b>');
   if(!S.daily&&!S.maxdd)rl.push('<span class="hint">No rules. Set them when you create a session (prop firm limits).</span>');
   setH('rules',rl.join('<br>'));
   var br=(S.daily&&dp<=-S.daily)?'⚠️ Daily loss limit exceeded':(S.maxdd&&dd<=-S.maxdd)?'⚠️ Max loss exceeded, the account would be lost':'';
@@ -1857,7 +1857,7 @@ function renderHome(){var D=sessData(),last=lsGet('mnqr-last',null),L=D.filter(f
   h+='</div>';$('home').innerHTML=h}
 function showHome(){stop();if(S){saveSession()}closeCtx&&closeCtx();renderHome();$('home').classList.remove('hide');$('mSessions').classList.add('hide')}
 function hideHome(){$('home').classList.add('hide')}
-function quickRandom(tries){tries=tries||0;var x=MNQ.idx['1m'],a=x.from+3*86400,b=x.to-2*86400,t,d;for(var i=0;i<80;i++){t=a+Math.random()*(b-a);d=new Date((t+off(t,NY))*1000);var w=d.getUTCDay();if(w>0&&w<6)break}
+function quickRandom(tries){tries=tries||0;var x=MNQ.idx['1m'],a=x.from+3*86400,b=x.to-2*86400,t,d;for(var i=0;i<80;i++){t=a+Math.random()*(b-a);d=new Date((t+off(t,NY))*1000);var w=d.getUTCDay();if(w>0&&w<6&&!(window.gapDay&&window.gapDay(d)))break}
   var ds=d.toISOString().slice(0,10).split('-'),start=wallToUtc(+ds[0],+ds[1],+ds[2],8,0,NY),src=pickSrc(start);if(!src){toast('Try again');return}
   loadFor(start).then(function(){var B=bars(src),k=lowerBound(B,start);  // holiday? (no candles in the morning) -> pick another day
     if(k>=B.length||B[k][0]>start+3*3600){if(tries<8)quickRandom(tries+1);else toast('Try again');return}
@@ -1911,11 +1911,11 @@ else loadScript('data/index.js').then(function(){makeChart();resizeOv();render()
 },function(){$('empty').innerHTML='No data. Run <b>Update data</b> (fetch_mnq.py).'});
 </script>
 <script src="js/v2.js?v=1795175231"></script>
-<script src="js/home.js?v=1795198909"></script>
+<script src="js/home.js?v=1795204686"></script>
 <script src="js/dom.js?v=1795172582"></script>
-<script src="js/stats.js?v=1795173262"></script>
+<script src="js/stats.js?v=1795204744"></script>
 <script src="js/replay.js?v=1795176714"></script>
-<script src="js/instr.js?v=1795172582"></script>
+<script src="js/instr.js?v=1795204707"></script>
 <script src="js/mconfig.js?v=1795186921"></script>
 <script src="js/match.js?v=1795198909"></script>
 <script src="js/live.js?v=1795199054"></script>

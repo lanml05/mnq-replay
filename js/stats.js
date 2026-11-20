@@ -66,12 +66,12 @@ function vMae(T){var P=T.filter(function(t){return R0(t)&&t.mae!=null});if(!P.le
   return'<div class="agrid2"><div class="acard"><h4>MAE (against you) ↔ MFE (in your favour), in R</h4><svg viewBox="0 0 '+W+' '+H+'" class="sct">'+ax+pts+'<text x="'+(W/2)+'" y="'+(H)+'" text-anchor="middle" class="axl">MAE</text></svg></div>'+
     '<div class="acard ins"><h4>What this means</h4><ul>'+
     '<li>Winning trades went on average <b>'+maeW.toFixed(2)+'R</b> against you. '+(maeW<0.4?'Your stop could be tighter.':maeW>0.8?'Your SL is where it should be.':'')+'</li>'+
-    '<li><b>'+deep+'</b> od '+wins.length+' winners went more than 0.5R against you before working out.</li>'+
+    '<li><b>'+deep+'</b> of '+wins.length+' winners went more than 0.5R against you before working out.</li>'+
     '<li>Losing trades went on average <b>'+mfeL.toFixed(2)+'R</b> in your favour before they turned.</li>'+
     '<li><b>'+gave+'</b> losing trades were already 1R in profit. '+(gave?'BE at 1R or a partial close would have saved them.':'')+'</li></ul></div></div>'}
 function vOpt(T){var O=optimizer(T);if(!O.n)return'<p class="dim">What-if needs trades with a stop loss in this session.</p>';
   var cell=function(c){var b=O.best===c;return'<td class="'+(b?'best ':'')+(c.tot>0?'pos':c.tot<0?'neg':'')+'"><b>'+(c.n?(c.tot>=0?'+':'')+c.tot.toFixed(1)+'R':'–')+'</b><small>'+(c.n?c.wr.toFixed(0)+' % · '+c.n:'')+'</small></td>'};
-  return'<div class="acard"><h4>What if: a different stop and target on the same entries</h4><p class="dim">Every entry from this session was replayed on the real candles with a different SL (as multiples of your SL) and TP (in R). Your actual result: <b class="'+cls(O.actual)+'">'+(O.actual>=0?'+':'')+O.actual.toFixed(1)+'R</b> na '+O.n+' trades.</p>'+
+  return'<div class="acard"><h4>What if: a different stop and target on the same entries</h4><p class="dim">Every entry from this session was replayed on the real candles with a different SL (as multiples of your SL) and TP (in R). Your actual result: <b class="'+cls(O.actual)+'">'+(O.actual>=0?'+':'')+O.actual.toFixed(1)+'R</b> over '+O.n+' trades.</p>'+
     '<table class="opt"><tr><th>SL \\ TP</th>'+O.grid[0].map(function(c){return'<th>'+c.r+'R</th>'}).join('')+'</tr>'+O.grid.map(function(row){return'<tr><th>'+row[0].m+'× SL</th>'+row.map(cell).join('')+'</tr>'}).join('')+'</table>'+
     (O.best?'<p class="ins1">Best combination: <b>SL '+O.best.m+'× yours</b> in <b>TP '+O.best.r+'R</b> → <b class="'+cls(O.best.tot)+'">'+(O.best.tot>=0?'+':'')+O.best.tot.toFixed(1)+'R</b> (win rate '+O.best.wr.toFixed(0)+' %). Careful: with few trades this can be luck.</p>':'')+'</div>'}
 function vMonte(T){var M=monte(T);if(!M)return'<p class="dim">Monte Carlo needs at least 5 trades with R (with a stop loss).</p>';var ar=M.ar;
