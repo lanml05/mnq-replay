@@ -155,10 +155,11 @@ function openMatch(code){Promise.all([DB.match(code),DB.results(code)]).then(fun
     :'<div class="lg-you">'+(P.results.length?'You played '+P.results.length+' of '+m.days.length+' days · '+fmtR(T.r):'You haven’t played this match yet')+'</div>';
   var md=modal('<div class="dhead"><b>'+esc2(m.name)+'</b><span class="lg-code" title="Match code">'+code+'</span><span class="hsp"></span><button class="hb" data-lx="1">'+ico('x')+'</button></div>'+
     '<div class="lg-meta">'+(live?'Live daily challenge · everyone played the same day at the same time in 20 minutes · score in R':m.days.length+' days · 5 minutes per day to take one trade · blind · score in R')+(m.created_by?' · by '+esc2(m.created_by):'')+'</div>'+you+
-    '<div class="lg-act">'+(done?'':'<button class="hbig" data-lp="1">'+ico('play')+(P.results.length?'Continue match':'Play match')+'</button>')+
+    '<div class="lg-act">'+(live&&R.length&&G.reviewLive?'<button class="hbig" data-lrv="1">'+ico('play')+'Review the day</button>':'')+(done?'':'<button class="hbig" data-lp="1">'+ico('play')+(P.results.length?'Continue match':'Play match')+'</button>')+
       '<button class="hsec" data-ls="1">'+ico('send')+'Copy invite link</button><button class="hsec" data-lr="1">Refresh</button></div>'+
     '<div class="lg-tw">'+(R.length?'<table class="lg-t"><tr><th></th><th>Player</th><th>R</th><th>Profit</th><th>Trades</th>'+cols+'</tr>'+rows+'</table>':'<p class="dim">Nobody has finished this match yet. Be the first.</p>')+'</div>');
   md.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+    if(b.dataset.lrv){md.remove();G.reviewLive(code);return}
     if(b.dataset.lp){md.remove();startMatch(m)}
     else if(b.dataset.ls){var u=shareUrl(code),t='MNQ Replay match "'+m.name+'" · '+m.days.length+' days · code '+code+(u!==code?'\n'+u:'');
       (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast('Invite copied · paste it in Discord')},function(){G.uiPrompt('Copy this invite',t)})}

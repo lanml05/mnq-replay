@@ -21,6 +21,9 @@ function startDay(y,m,d,hh,mm,name,tries){var start=wallToUtc(y,m,d,hh,mm,NY),sr
     var s={id:uid(),name:name,start:start,curT:start-1,src:src,bal0:50000,pv:lsGet('mnqr-sym','nq')==='es'?5:2,comm:0.5,spread:0.25,slip:0,daily:null,maxdd:null,positions:[],orders:[],trades:[],drawings:[],tf:null};
     openSession(s).then(function(){if(S)hideHome()})})}
 G.startDay=startDay;G.dailyPick=dailyPick;
+// sessions made before the app was in English keep their old names: rename them once
+(function enNames(){if(lsGet('mnqr-en-names',false))return;function f(n){return String(n==null?'':n).replace(/^Seja\b/,'Session').replace(/^Naklju\u010den dan/,'Random day').replace(/^Dnevni izziv/,'Daily challenge').replace(/^Izziv\b/,'Challenge')}
+  var L=listSessions(),ch=false;L.forEach(function(x){var n=f(x.name);if(n!==x.name){x.name=n;ch=true;var o=lsGet('mnqr-s-'+x.id,null);if(o){o.name=n;lsSet('mnqr-s-'+x.id,o)}}});if(ch)lsSet('mnqr-sessions',L);lsSet('mnqr-en-names',true)})();
 
 /* ---------- live chart in the background ---------- */
 var BG={raf:0,c:null,bars:null,off:0,last:0};
